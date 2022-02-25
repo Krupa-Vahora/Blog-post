@@ -2,9 +2,9 @@ const bodyParser = require("body-parser");
 const express = require("express");
 const mongoose = require("mongoose");
 const url = "mongodb://localhost/BlogDB";
-
+const path = require("path");
 const app = express();
-
+app.use(express.static(path.join(__dirname, "/public")));
 //connection
 mongoose.connect(url, { useNewUrlParser: true });
 const con = mongoose.connection;

@@ -6,5 +6,6 @@ const Topic = new mongoose.Schema({
     unique: true,
   },
 });
-const model = mongoose.model("Topic", Topic);
-module.exports = model;
+
+const topic = mongoose.model("Topic", Topic);
+module.exports = topic;
