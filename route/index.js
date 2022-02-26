@@ -124,7 +124,7 @@ const filefilter = (req, file, cb) => {
 const upload = multer({
   storage: storage,
   fileFilter: filefilter,
-  limits: 1000000,
+  limits: 100000000,
 });
 //create post
 router.post("/post/:topic_id", auth, upload.single("img"), async (req, res) => {
@@ -134,14 +134,17 @@ router.post("/post/:topic_id", auth, upload.single("img"), async (req, res) => {
     img: req.file,
     topic: topic,
   });
-  post.save((err, data) => {
-    res.status(200).json({
-      message: "Post Added Successfully ",
-      addPost: data,
-      img: req.file,
-    });
+
+  post.save().catch((e) => {
+    console.log(e);
+  });
+  res.status(201).json({
+    message: "Post Added Successfully ",
+    addPost: post,
+    img: req.file,
   });
 });
+
 //get all post
 router.get("/allPosts", async (req, res) => {
   try {
@@ -155,18 +158,19 @@ router.get("/allPosts", async (req, res) => {
 //edit post
 router.patch("/postEdit/:id", auth, upload.single("img"), async (req, res) => {
   try {
-    const buffer = await sharp(req.file.buffer)
+    const file = await sharp(req.file)
       .resize({ width: 250, height: 250 })
-      .png()
-      .toBuffer();
+      .png();
+
     const post = await Post.findByIdAndUpdate(
       req.params.id,
       {
         content: req.body.content,
-        img: buffer,
+        img: file,
       },
       { new: true, runValidators: true }
     );
+
     if (!post) {
       return res.status(404).send();
     }
@@ -206,7 +210,7 @@ router.get("/post/:topic_id", async (req, res) => {
 // get most recent posts
 router.get("/postRecent", auth, async (req, res) => {
   try {
-    const recentpost = await Post.find().sort({ _id: -1 }).limit(5);
+    const recentpost = await Post.find().sort({ _id: -1 }).limit(1);
     res.send(recentpost);
   } catch (e) {
     res.status(500).send(e);
@@ -290,7 +294,7 @@ router.get("/postMostLike", async (req, res) => {
           img: 0,
         },
       },
-      { $limit: 2 },
+      // { $limit: 5 },
     ]);
     res.status(200).send(post);
     const postSort = post.sort((a, b) => {
